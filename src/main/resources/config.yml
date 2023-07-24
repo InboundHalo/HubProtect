@@ -1,0 +1,10 @@
+cancel-interact: # Prevents placing and interacting (right click)
+  - WARPED_TRAPDOOR
+  - CHEST
+  - TRAPPED_CHEST
+  - BARREL
+  - ANVIL
+  - SMOKER
+  - OAK_BUTTON
+  - SPRUCE_FENCE_GATE
+  - FARMLAND
