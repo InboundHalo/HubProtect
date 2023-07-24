@@ -5,8 +5,11 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -17,6 +20,7 @@ import java.util.logging.Logger;
 
 public final class HubProtect extends JavaPlugin implements Listener {
     private final List<Material> cancelledMaterials = new ArrayList<>();
+    private final List<EntityDamageEvent.DamageCause> cancelledDamageCauses = new ArrayList<>();
     private Logger logger;
     @Override
     public void onEnable() {
@@ -53,11 +57,23 @@ public final class HubProtect extends JavaPlugin implements Listener {
         }
 
         logger.info("Loaded " + cancelledMaterials.size() + " materials from config.yml");
-    }
 
-    @Override
-    public void onDisable() {
-        // Plugin shutdown logic
+        // Read the list of damage causes from the config.yml
+        List<String> damageCausesList = config.getStringList("cancel-damage");
+
+        // Clear the existing list before adding the new damage causes
+        cancelledDamageCauses.clear();
+
+        for (String damageCauseString : damageCausesList) {
+            try {
+                EntityDamageEvent.DamageCause damageCause = EntityDamageEvent.DamageCause.valueOf(damageCauseString);
+                cancelledDamageCauses.add(damageCause);
+            } catch (IllegalArgumentException e) {
+                logger.warning("Invalid damage cause found in config.yml: " + damageCauseString);
+            }
+        }
+
+        logger.info("Loaded " + cancelledDamageCauses.size() + " damage causes from config.yml");
     }
 
     @EventHandler
@@ -74,6 +90,20 @@ public final class HubProtect extends JavaPlugin implements Listener {
             if (cancelledMaterials.contains(clickedMaterial)) {
                 event.setCancelled(true);
             }
+        }
+    }
+
+    @EventHandler
+    public void EntityDamageEvent (EntityDamageEvent event) {
+        Entity entity = event.getEntity();
+
+        if (!(entity instanceof Player))
+            return;
+
+        Player player = (Player) entity;
+
+        if (cancelledDamageCauses.contains(event.getCause())) {
+            event.setCancelled(true);
         }
     }
 }
