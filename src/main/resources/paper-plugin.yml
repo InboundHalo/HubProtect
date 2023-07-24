@@ -1,5 +1,6 @@
 name: HubProtect
-version: '${project.version}'
+author: InboundHalo
+version: '1.0'
 main: net.gamingtavern.hubprotect.HubProtect
 api-version: '1.20'
 load: STARTUP
